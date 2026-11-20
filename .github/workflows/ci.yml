@@ -2,19 +2,45 @@ name: ci
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ (github.event.repository.private && vars.RUNNER) || 'ubuntu-latest' }}
+    concurrency: {group: ci-${{ github.ref }}, cancel-in-progress: false}
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
-      # The SDK is a private repo, read through a read-only deploy key.
-      - uses: webfactory/ssh-agent@v0.9.0
+      - uses: dtolnay/rust-toolchain@stable
+        # A stalled download here once held the shared runner's queue.
+        timeout-minutes: 10
         with:
-          ssh-private-key: ${{ secrets.CONNECTIVITY_SDK_DEPLOY_KEY }}
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: pip install -e '.[test]'
-      - run: pytest -q
+          targets: wasm32-unknown-unknown
+          components: clippy, rustfmt
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo test
+      - run: cargo build --release --target wasm32-unknown-unknown
+
+      # The manifest names the module, the logos and the module's sha256, so a
+      # release is checked whole by whoever adds it to a catalog.
+      - name: Package
+        run: |
+          mkdir -p dist
+          cp target/wasm32-unknown-unknown/release/carrier_1nce.wasm dist/carrier.wasm
+          cp logo.svg logo-dark.svg dist/
+          sha="$(sha256sum dist/carrier.wasm | cut -d' ' -f1)"
+          version="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n1)"
+          jq --arg sha "${sha}" --arg v "${version}" '.module.sha256 = $sha | .version = $v' carrier.json > dist/carrier.json
+          ls -l dist
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ "${GITHUB_REF_NAME#v}" = "$(jq -r .version dist/carrier.json)" ] \
+            || { echo "::error::the tag is not Cargo.toml's version"; exit 1; }
+          gh release create "${GITHUB_REF_NAME}" dist/* --title "${GITHUB_REF_NAME}" --notes "carrier-1nce ${GITHUB_REF_NAME#v}"

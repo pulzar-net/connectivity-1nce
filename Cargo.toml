@@ -1,0 +1,20 @@
+[package]
+name = "carrier-1nce"
+version = "1.0.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "The 1NCE carrier package for Pulzr: a connectivity driver as a WebAssembly module (carrier ABI 1)"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+serde_json = "1"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

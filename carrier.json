@@ -1,0 +1,32 @@
+{
+  "abi": 1,
+  "id": "1nce",
+  "name": "1NCE",
+  "version": "1.0.0",
+  "kind": "cellular",
+  "description": "IoT SIMs with a lifetime data allowance, managed through 1NCE's API: inventory, live status, usage, suspend and activate, top-ups, reset and IMEI lock.",
+  "homepage": "https://1nce.com",
+  "logo": "logo.svg",
+  "logoDark": "logo-dark.svg",
+  "capabilities": ["sim.inventory", "sim.status", "sim.usage", "sim.suspend", "sim.activate", "sim.topup",
+                   "sim.reset", "sim.lock", "sim.location", "apn.profile"],
+  "hosts": ["api.1nce.com"],
+  "credentials": {
+    "type": "object",
+    "required": ["client_id", "client_secret"],
+    "properties": {
+      "client_id": {"type": "string", "title": "API user", "minLength": 1, "maxLength": 200},
+      "client_secret": {"type": "string", "title": "API password", "format": "password", "minLength": 1, "maxLength": 200}
+    },
+    "additionalProperties": false
+  },
+  "config": {
+    "type": "object",
+    "properties": {
+      "topupPaymentMethod": {"type": "string", "title": "Top-up payment method", "enum": ["monthlyinvoice", "creditcard", "banktransfer"]}
+    },
+    "additionalProperties": false
+  },
+  "module": {"file": "carrier.wasm", "sha256": null},
+  "limits": {"fuel": 1000000000, "memoryMib": 32}
+}
