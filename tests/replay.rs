@@ -2,7 +2,7 @@
 //! real ICCID, address, account or credential appears here. Requests go to a
 //! recording, never to 1NCE.
 
-use carrier_1nce::{handle, Transport};
+use carrier_1nce::{handle, Host};
 use serde_json::{json, Value};
 use std::collections::HashMap;
 
@@ -12,6 +12,7 @@ const ICCID: &str = "8988000000000000001";
 struct Replay {
     responses: HashMap<(String, String), (u64, Value)>,
     sent: Vec<Value>,
+    state: HashMap<String, (String, u32)>,
 }
 
 impl Replay {
@@ -28,6 +29,7 @@ impl Replay {
         let mut r = Replay {
             responses: HashMap::new(),
             sent: Vec::new(),
+            state: HashMap::new(),
         };
         r.on(
             "POST",
@@ -111,18 +113,33 @@ impl Replay {
     }
 }
 
-impl Transport for Replay {
+impl Host for Replay {
     fn send(&mut self, request: &Value) -> Value {
         match request {
             Value::Array(batch) => json!(batch.iter().map(|r| self.one(r)).collect::<Vec<_>>()),
             r => self.one(r),
         }
     }
+
+    fn state_get(&mut self, key: &str) -> Option<String> {
+        self.state.get(key).map(|(v, _)| v.clone())
+    }
+
+    fn state_set(&mut self, key: &str, value: Option<&str>, ttl_s: u32) {
+        match value {
+            Some(v) if !v.is_empty() => {
+                self.state.insert(key.into(), (v.into(), ttl_s));
+            }
+            _ => {
+                self.state.remove(key);
+            }
+        }
+    }
 }
 
 fn call(replay: &mut Replay, op: &str, args: Value, config: Value) -> Value {
     handle(
-        &json!({"op": op, "args": args, "config": config, "memo": {}, "now": 0}),
+        &json!({"op": op, "args": args, "config": config, "now": 0}),
         replay,
     )
 }
@@ -138,8 +155,9 @@ fn check_proves_the_credentials_with_placeholders_only() {
         "Basic {{basic:client_id:client_secret}}"
     );
     assert_eq!(
-        a["memo"]["token"]["value"], "tok",
-        "the token is remembered for the next call"
+        r.state["token"],
+        ("tok".to_string(), 3600 - 60),
+        "the token is kept in state, short of its expiry"
     );
 }
 
@@ -162,10 +180,8 @@ fn a_sim_is_normalized_and_cached() {
 #[test]
 fn a_held_token_is_used() {
     let mut r = Replay::new();
-    handle(
-        &json!({"op": "sim", "args": {"iccid": ICCID}, "memo": {"token": "held"}}),
-        &mut r,
-    );
+    r.state.insert("token".into(), ("held".into(), 60));
+    handle(&json!({"op": "sim", "args": {"iccid": ICCID}}), &mut r);
     assert!(!r
         .methods()
         .contains(&("POST".into(), "/oauth/token".into())));
@@ -176,10 +192,8 @@ fn a_held_token_is_used() {
 fn an_expired_token_is_fetched_again_once() {
     let mut r = Replay::new();
     r.on("GET", &format!("/v1/sims/{ICCID}"), 401, json!({}));
-    let a = handle(
-        &json!({"op": "sim", "args": {"iccid": ICCID}, "memo": {"token": "old"}}),
-        &mut r,
-    );
+    r.state.insert("token".into(), ("old".into(), 60));
+    let a = handle(&json!({"op": "sim", "args": {"iccid": ICCID}}), &mut r);
     assert_eq!(
         r.methods().iter().filter(|m| m.1 == "/oauth/token").count(),
         1

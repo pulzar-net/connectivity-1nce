@@ -3,9 +3,16 @@
 version = 4
 
 [[package]]
+name = "base64"
+version = "0.22.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
+
+[[package]]
 name = "carrier-1nce"
 version = "1.0.0"
 dependencies = [
+ "pulzr-package",
  "serde_json",
 ]
 
@@ -31,6 +38,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "pulzr-package"
+version = "0.1.0"
+source = "git+https://github.com/pulzar-net/pulzr-package-sdk?tag=v0.1.0#d0081569cb767edfc8712980d4ed9a14bf563ad1"
+dependencies = [
+ "base64",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.47"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -46,6 +63,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba"
 dependencies = [
  "serde_core",
+ "serde_derive",
 ]
 
 [[package]]

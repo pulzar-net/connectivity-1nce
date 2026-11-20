@@ -119,15 +119,15 @@ fn str_arg<'a>(args: &'a Value, name: &str) -> Result<&'a str> {
 
 // ── transport ──────────────────────────────────────────────────────────────
 
-/// An OAuth token for the account, from the memo or fresh. The credentials
+/// An OAuth token for the account, from its state or fresh. The credentials
 /// are placeholders the host fills in; this module never holds them.
 fn token(call: &mut Call, fresh: bool) -> Result<String> {
     if !fresh {
-        if let Some(t) = call.memo.get("token").and_then(Value::as_str) {
-            return Ok(t.to_string());
+        if let Some(t) = call.host.state_get("token") {
+            return Ok(t);
         }
     }
-    let response = call.transport.send(&json!({
+    let response = call.host.send(&json!({
         "method": "POST",
         "url": format!("{API}/oauth/token"),
         "headers": {"Authorization": "Basic {{basic:client_id:client_secret}}",
@@ -213,11 +213,11 @@ fn send(
     cache: u64,
 ) -> Result<Value> {
     let t = token(call, false)?;
-    let response = call.transport.send(&request(path, method, &t, body, cache));
+    let response = call.host.send(&request(path, method, &t, body, cache));
     if response.get("status").and_then(Value::as_u64) == Some(401) {
         call.forget("token");
         let t = token(call, true)?;
-        return read(&call.transport.send(&request(path, method, &t, body, 0)));
+        return read(&call.host.send(&request(path, method, &t, body, 0)));
     }
     read(&response)
 }
@@ -567,7 +567,7 @@ fn statuses(call: &mut Call, iccids: Vec<Value>) -> Result<Value> {
             .iter()
             .map(|i| request(&format!("/v1/sims/{i}/status"), "GET", &t, None, 0))
             .collect();
-        let answers = call.transport.send(&json!(batch));
+        let answers = call.host.send(&json!(batch));
         for (i, iccid) in chunk.iter().enumerate() {
             let state = answers
                 .get(i)

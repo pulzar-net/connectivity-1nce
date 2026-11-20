@@ -2,8 +2,8 @@
 name = "carrier-1nce"
 version = "1.0.0"
 edition = "2021"
-license = "Apache-2.0"
-description = "The 1NCE carrier package for Pulzr: a connectivity driver as a WebAssembly module (carrier ABI 1)"
+license = "MIT"
+description = "The 1NCE carrier driver for Pulzr: a carrier extension module on extension ABI 2"
 publish = false
 
 [lib]
@@ -11,6 +11,10 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 serde_json = "1"
+
+# The SDK's ABI glue and host calls, used only in the module itself.
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+pulzr-package = { git = "https://github.com/pulzar-net/pulzr-package-sdk", tag = "v0.1.0" }
 
 [profile.release]
 opt-level = "s"
