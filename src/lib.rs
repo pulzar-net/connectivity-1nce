@@ -1,4 +1,4 @@
-//! The 1NCE carrier driver: a Pulzar extension module of the carrier kind
+//! The 1NCE carrier driver: a Pulzr extension module of the carrier kind
 //! (pulzar-net/pulzr-package-sdk, "Build a carrier driver"), on the platform's
 //! extension ABI 2, written with `pulzr-package`.
 //!

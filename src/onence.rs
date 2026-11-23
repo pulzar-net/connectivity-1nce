@@ -608,7 +608,7 @@ fn events(call: &mut Call, iccid: &str, limit: u64) -> Result<Value> {
 
 // ── what the SIMs cost ─────────────────────────────────────────────────────
 //
-// For Pulzar staff's direct cost of an organization, read from what was
+// For Pulzr staff's direct cost of an organization, read from what was
 // ordered. Read only: no order is ever placed here but a top-up.
 
 fn amount(v: &Value) -> Option<f64> {
