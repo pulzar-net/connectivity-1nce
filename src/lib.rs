@@ -1,6 +1,6 @@
 //! The 1NCE carrier driver: a Pulzar extension module of the carrier kind
-//! (pulzar-net/connectivity-sdk `CARRIER.md`), on extension ABI 2
-//! (pulzar-net/pulzr-protocol `EXTENSIONS.md`), written with `pulzr-package`.
+//! (pulzar-net/pulzr-package-sdk, "Build a carrier driver"), on the platform's
+//! extension ABI 2, written with `pulzr-package`.
 //!
 //! Each event is one operation, `{"op", "args", "config", "now"}`, answered
 //! `{"ok": ...}` or `{"error": {"message", "status"}}`. Every request to 1NCE

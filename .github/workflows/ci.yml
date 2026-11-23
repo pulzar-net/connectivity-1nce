@@ -4,45 +4,33 @@ on:
     branches: [main]
     tags: ['v*']
   pull_request:
+permissions:
+  contents: read
 
 jobs:
-  build:
-    runs-on: ${{ (github.event.repository.private && vars.RUNNER) || 'ubuntu-latest' }}
-    concurrency:
-      group: ci-${{ github.ref }}
-      cancel-in-progress: false
-    permissions:
-      contents: write
+  test:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-        # A stalled download here once held the shared runner's queue.
-        timeout-minutes: 10
         with:
           targets: wasm32-unknown-unknown
           components: clippy, rustfmt
       - run: cargo fmt --check
       - run: cargo clippy --all-targets -- -D warnings
       - run: cargo test
-      - run: cargo build --release --target wasm32-unknown-unknown
 
-      # The manifest names the module, the logos and the module's sha256, so a
-      # release is checked whole by whoever adds it to a catalog.
-      - name: Package
-        run: |
-          mkdir -p dist
-          cp target/wasm32-unknown-unknown/release/carrier_1nce.wasm dist/carrier.wasm
-          cp logo.svg logo-dark.svg dist/
-          sha="$(sha256sum dist/carrier.wasm | cut -d' ' -f1)"
-          version="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n1)"
-          jq --arg sha "${sha}" --arg v "${version}" '.module.sha256 = $sha | .version = $v' carrier.json > dist/carrier.json
-          ls -l dist
-
-      - name: Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          [ "${GITHUB_REF_NAME#v}" = "$(jq -r .version dist/carrier.json)" ] \
-            || { echo "::error::the tag is not Cargo.toml's version"; exit 1; }
-          gh release create "${GITHUB_REF_NAME}" dist/* --title "${GITHUB_REF_NAME}" --notes "carrier-1nce ${GITHUB_REF_NAME#v}"
+  # Built, validated and tested through the platform's own host; a tag
+  # vX.Y.Z (driver.json's version) releases driver.json with the module's
+  # sha256, driver.wasm and the logos, with the annotated tag's message as
+  # its notes.
+  package:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pulzar-net/pulzr-package-sdk@v0.3.0
+        with:
+          release: ${{ startsWith(github.ref, 'refs/tags/v') }}

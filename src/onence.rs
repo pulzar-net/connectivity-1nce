@@ -1,5 +1,5 @@
 //! Everything that knows 1NCE's URLs, field names and quirks. Callers see the
-//! connectivity contract's shapes (connectivity-sdk schema); 1NCE's own
+//! carrier kind's shapes (pulzr-package-sdk connectivity.schema.json); 1NCE's own
 //! records are cached by the host, per account, for the times below.
 
 use crate::{Call, Failure, Result};
