@@ -34,10 +34,10 @@
     },
     "additionalProperties": false
   },
-  "module": {
+  "driver": {
     "runtime": "wasm",
-    "module": "carrier.wasm",
-    "sha256": null,
+    "module": "driver.wasm",
+    "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
     "limits": {
       "fuel": 1000000000,
       "memoryMiB": 32,
