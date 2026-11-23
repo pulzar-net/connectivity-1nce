@@ -1,0 +1,3 @@
+{"name": "the APN profile is 1NCE's own, asked without credentials", "event": {"op": "apn_profile", "args": {}, "config": {}, "now": 1795000000.0}, "expect": {"ok": {"apn": "iot.1nce.net", "username": null, "password": null, "pin": null, "roaming": true}}}
+{"name": "an ICCID that is not one is refused before 1NCE is asked", "event": {"op": "sim", "args": {"iccid": "not-an-iccid"}, "config": {}, "now": 1795000000.0}, "expect": {"error": {"message": "An ICCID is up to 22 digits.", "status": 400}}}
+{"name": "an operation 1NCE has no form of is a 501", "event": {"op": "send_sms", "args": {}, "config": {}, "now": 1795000000.0}, "expect_contains": {"error": {"status": 501}}}
