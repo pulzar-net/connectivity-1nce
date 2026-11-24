@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   test:
-    runs-on: ${{ (github.event.repository.private && vars.RUNNER) || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -26,7 +26,7 @@ jobs:
   # its notes.
   package:
     needs: test
-    runs-on: ${{ (github.event.repository.private && vars.RUNNER) || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
