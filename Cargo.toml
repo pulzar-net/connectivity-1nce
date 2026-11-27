@@ -14,7 +14,7 @@ serde_json = "1"
 
 # The SDK's ABI glue and host calls, used only in the module itself.
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-pulzr-package = { git = "https://github.com/pulzar-net/pulzr-package-sdk", tag = "v0.1.1" }
+pulzr-package = { git = "https://github.com/pulzar-net/pulzr-package-sdk", tag = "v0.3.0" }
 
 [profile.release]
 opt-level = "s"

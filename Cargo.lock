@@ -40,7 +40,7 @@ dependencies = [
 [[package]]
 name = "pulzr-package"
 version = "0.1.0"
-source = "git+https://github.com/pulzar-net/pulzr-package-sdk?tag=v0.1.1#f80cfbe0d878cd3f047d80264170e05418928c1d"
+source = "git+https://github.com/pulzar-net/pulzr-package-sdk?tag=v0.3.0#a4dcffe4eac3dadec30b17b83e9a822a8da2a315"
 dependencies = [
  "base64",
  "serde",
